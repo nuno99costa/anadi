@@ -116,16 +116,16 @@ dev.off()
 ##4.1-d
 
 #captura dados relativos aos países do dataset inicial
-albania_data <- data.frame(covid_data[grepl('(ALB)', covid_data$iso_code),])
-denmark_data <- data.frame(covid_data[grepl('(DNK)', covid_data$iso_code), ])
-germany_data <- data.frame(covid_data[grepl('(DEU)', covid_data$iso_code), ])
-russia_data <- data.frame(covid_data[grepl('(RUS)', covid_data$iso_code), ])
+albania_data <- subset(covid_data, iso_code == "ALB", select=c(location, total_deaths_per_million, total_tests_per_thousand))
+denmark_data <- subset(covid_data, iso_code == "DNK", select=c(location, total_deaths_per_million, total_tests_per_thousand))
+germany_data <- subset(covid_data, iso_code == "DEU", select=c(location, total_deaths_per_million, total_tests_per_thousand))
+russia_data <- subset(covid_data, iso_code == "RUS", select=c(location, total_deaths_per_million, total_tests_per_thousand))
 
 #limpar NAs na informação importante
-albania_data <- albania_data[!is.na(albania_data$total_deaths_per_million) & !is.na(albania_data$total_tests_per_thousand), ]
-denmark_data <- denmark_data[!is.na(denmark_data$total_deaths_per_million) & !is.na(denmark_data$total_tests_per_thousand), ]
-germany_data <- germany_data[!is.na(germany_data$total_deaths_per_million) & !is.na(germany_data$total_tests_per_thousand), ]
-russia_data <- russia_data[!is.na(russia_data$total_deaths_per_million) & !is.na(russia_data$total_tests_per_thousand), ]
+albania_data <- na.omit(albania_data)
+denmark_data <- na.omit(denmark_data)
+germany_data <- na.omit(germany_data)
+russia_data <- na.omit(russia_data)
 
 #captura a informação mais recente sobre cada país
 albania_latest <- tail(albania_data, n=1)
@@ -184,20 +184,12 @@ print(head(sorted_data, n=1))
 #4.1-g
 
 #captura dados relativos a continentes do dataset inicial
-afr_data <- covid_data[grepl('(OWID_)(AFR)', covid_data$iso_code), ]
-asi_data <- covid_data[grepl('(OWID_)(ASI)', covid_data$iso_code), ]
-eur_data <- covid_data[grepl('(OWID_)(EUR)', covid_data$iso_code), ]
-nam_data <- covid_data[grepl('(OWID_)(NAM)', covid_data$iso_code), ]
-oce_data <- covid_data[grepl('(OWID_)(OCE)', covid_data$iso_code), ]
-sam_data <- covid_data[grepl('(OWID_)(SAM)', covid_data$iso_code), ]
-
-#captura subset de dados relativos aos casos totais
-new_cases_by_afr <- subset(afr_data, select=c("new_deaths_per_million"))
-new_cases_by_asi <- subset(asi_data, select=c("new_deaths_per_million"))
-new_cases_by_eur <- subset(eur_data, select=c("new_deaths_per_million"))
-new_cases_by_nam <- subset(nam_data, select=c("new_deaths_per_million"))
-new_cases_by_oce <- subset(oce_data, select=c("new_deaths_per_million"))
-new_cases_by_sam <- subset(sam_data, select=c("new_deaths_per_million"))
+new_cases_by_afr <- subset(covid_data, iso_code == 'OWID_AFR', select=c("new_deaths_per_million"))
+new_cases_by_asi <- subset(covid_data, iso_code == 'OWID_ASI', select=c("new_deaths_per_million"))
+new_cases_by_eur <- subset(covid_data, iso_code == 'OWID_EUR', select=c("new_deaths_per_million"))
+new_cases_by_nam <- subset(covid_data, iso_code == 'OWID_NAM', select=c("new_deaths_per_million"))
+new_cases_by_oce <- subset(covid_data, iso_code == 'OWID_OCE', select=c("new_deaths_per_million"))
+new_cases_by_sam <- subset(covid_data, iso_code == 'OWID_SAM', select=c("new_deaths_per_million"))
 
 #remove NAs
 new_cases_by_afr <- na.omit(new_cases_by_afr)
