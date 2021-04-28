@@ -3,7 +3,7 @@ library(ggpubr)
 library(car)
 covid_data <- read_csv("../owid-covid-data.csv")
 
-file<-file("result_4.2.a.txt", "w")
+file<-file("result_4.2.txt", "w")
 
 #4.2 Inferência Estatística
 
