@@ -24,21 +24,29 @@ sample_prt <- subset(covid_data, date %in% sample_data & iso_code == "PRT", sele
 sample_uk <- subset(covid_data, date %in% sample_data & iso_code == "GBR", select=c(location, reproduction_rate))
 
 #verificamos a normalidade através de análise gráfica
-ggqqplot(sample_prt$reproduction_rate, ylab = "Taxa de Transmissibilidade", xlabel= "Teorético")
-ggqqplot(sample_uk$reproduction_rate, ylab = "Taxa de Transmissibilidade", xlabel= "Teorético")
+qqplot_prt <- ggqqplot(sample_prt$reproduction_rate, ylab = "Taxa de Transmissibilidade", xlabel= "Teorético")
+#guarda o gráfico num ficheiro
+png(filename="4.2.a_portugal_qqplot.png")
+plot(qqplot_prt)
+dev.off()
+
+qqplot_uk <- ggqqplot(sample_uk$reproduction_rate, ylab = "Taxa de Transmissibilidade", xlabel= "Teorético")
+png(filename="4.2.a_reino_unido_qqplot.png")
+plot(qqplot_uk)
+dev.off()
 
 #verificamos a normalidade da distribuição dos dados (P-value do teste de Shapiro)
 shap_prt <- shapiro.test(sample_prt$reproduction_rate)
 shap_uk <- shapiro.test(sample_uk$reproduction_rate)
 write(c("Shapiro p-values","Portugal",shap_prt$p.value,"Reino Unido", shap_uk$p.value), file, append=TRUE)
 
-#Análise gráfica + Shapiro P-values + tamanho da amostra (>=30) -> usamos T-test
+#Análise gráfica + Shapiro P-values + tamanho da amostra (>=30) + dados emparelhados -> usamos T-test emparelhado
 result <- t.test(sample_uk$reproduction_rate,sample_prt$reproduction_rate, paired = TRUE, alternative = "greater")
 
 #as médias são semelhantes entre os países
 write(c("T-test p-value", result$p.value,"De acordo com o p-value (>0.05), aceitamos a hipótese nula e inferimos que média do Reino Unido não é significativamente superior à média de Portugal"), file, append=TRUE)
 
-#4.2.b
+##4.2.b
 write("\n4.2.b", file, append=TRUE)
 
 #definir seed
@@ -51,31 +59,66 @@ sample_dates <- sample(date_list, 15)
 all_samples <- subset(covid_data, date %in% sample_dates & grepl('(ESP|ITA|FRA|PRT)', covid_data$iso_code), select=c(location,date,new_deaths_per_million))
 
 #verificamos a normalidade através de análise gráfica
-ggqqplot(subset(all_samples, all_samples$location == "Portugal")$new_deaths_per_million, ylab = "Taxa de Transmissibilidade", xlabel= "Teorético")
-ggqqplot(subset(all_samples, all_samples$location == "Spain")$new_deaths_per_million, ylab = "Taxa de Transmissibilidade", xlabel= "Teorético")
-ggqqplot(subset(all_samples, all_samples$location == "Italy")$new_deaths_per_million, ylab = "Taxa de Transmissibilidade", xlabel= "Teorético")
-ggqqplot(subset(all_samples, all_samples$location == "France")$new_deaths_per_million, ylab = "Taxa de Transmissibilidade", xlabel= "Teorético")
+qqplot_prt <- ggqqplot(subset(all_samples, all_samples$location == "Portugal")$new_deaths_per_million, 
+		 ylab = "Mortes Diárias/Milhão de habitantes", 
+		 xlabel= "Teorético")
+#guarda o gráfico num ficheiro
+png(filename="4.2.b_portugal_qqplot.png")
+plot(qqplot_prt)
+dev.off()
 
-#testar normalidade dos dados
+qqplot_esp <- ggqqplot(subset(all_samples, all_samples$location == "Spain")$new_deaths_per_million, 
+		 ylab = "Mortes Diárias/Milhão de habitantes", 
+		 xlabel= "Teorético")
+png(filename="4.2.b_espanha_qqplot.png")
+plot(qqplot_esp)
+dev.off()
+
+qqplot_ita <- ggqqplot(subset(all_samples, all_samples$location == "Italy")$new_deaths_per_million, 
+		 ylab = "Mortes Diárias/Milhão de habitantes", 
+		 xlabel= "Teorético")
+png(filename="4.2.b_italia_qqplot.png")
+plot(qqplot_ita)
+dev.off()
+
+qqplot_fra <- ggqqplot(subset(all_samples, all_samples$location == "France")$new_deaths_per_million, 
+		 ylab = "Mortes Diárias/Milhão de habitantes", 
+		 xlabel= "Teorético")
+png(filename="4.2.b_frança_qqplot.png")
+plot(qqplot_fra)
+dev.off()
+
+#Testamos normalidade dos dados
 shap_prt <- shapiro.test(subset(all_samples, all_samples$location == "Portugal")$new_deaths_per_million)
 shap_esp <- shapiro.test(subset(all_samples, all_samples$location == "Spain")$new_deaths_per_million)
 shap_ita <- shapiro.test(subset(all_samples, all_samples$location == "Italy")$new_deaths_per_million)
 shap_fra <- shapiro.test(subset(all_samples, all_samples$location == "France")$new_deaths_per_million)
 
-write(c("Shapiro p-values","Portugal: ", shap_prt$p.value,"Espanha: ", shap_esp$p.value,"Itália: ", shap_ita$p.value,"França: ", shap_fra$p.value), file, append=TRUE)
+write(c("Shapiro p-values","Portugal: ", shap_prt$p.value,
+		"Espanha: ", shap_esp$p.value,
+		"Itália: ", shap_ita$p.value,
+		"França: ", shap_fra$p.value), file, append=TRUE)
 
-#Dados não são normais
-#Usamos o teste de Kruskal-Wallis
-
-kruskal <- kruskal.test(new_deaths_per_million~location, data=all_samples)
-kruskal
-
-
+#Dados não são normalmente distribuidos e são emparelhados
+#Usamos o teste de Friedman
+friedman <- friedmanTest(y=all_samples$new_deaths_per_million, groups=all_samples$location, blocks=all_samples$date)
 
 write("Distribuição dos dados não é normal", file, append=TRUE)
-write(c("\nTeste de Kruskal p-value", kruskal$p.value, "De acordo com o p-value obtido, concluimos que não existe diferença significativa na variável em estudo (p-value > 0.05)"), file, append=TRUE)
+write(c("\nTeste de Friedman p-value", friedman$p.value, "De acordo com o p-value obtido, rejeitamos a hipótese nula e inferimos que existe diferença significativa em no mínimo duas das amostras estudadas (p-value < 0.05)"), file, append=TRUE)
 
-#4.2.c
+#Análise Post-hoc
+boxplot <- ggplot(all_samples, aes(x=location, y=new_deaths_per_million)) + 
+    geom_boxplot()
+png(filename="4.2.b_boxplot.png")
+plot(boxplot)
+dev.off()
+
+#usamos o teste de Nemenyi (https://www.worldcat.org/title/distribution-free-multiple-comparisons/oclc/39810544)
+
+frdManyOneNemenyiTest(y=all_samples$new_deaths_per_million, groups=all_samples$location, blocks=all_samples$date)
+
+
+##4.2.c
 write("\n4.2.c", file, append=TRUE)
 
 #definir seed e obter lista de dias a usar
