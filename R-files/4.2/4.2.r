@@ -44,7 +44,7 @@ write(c("Shapiro p-values","Portugal",shap_prt$p.value,"Reino Unido", shap_uk$p.
 result <- t.test(sample_uk$reproduction_rate,sample_prt$reproduction_rate, paired = TRUE, alternative = "greater")
 
 #as médias são semelhantes entre os países
-write(c("T-test p-value", result$p.value,"De acordo com o p-value (>0.05), aceitamos a hipótese nula e inferimos que média do Reino Unido não é significativamente superior à média de Portugal"), file, append=TRUE)
+write(c("Paired T-test p-value", result$p.value,"De acordo com o p-value (>0.05), aceitamos a hipótese nula e inferimos que média do Reino Unido não é significativamente superior à média de Portugal"), file, append=TRUE)
 
 ##4.2.b
 write("\n4.2.b", file, append=TRUE)
@@ -114,9 +114,9 @@ plot(boxplot)
 dev.off()
 
 #usamos o teste de Nemenyi (https://www.worldcat.org/title/distribution-free-multiple-comparisons/oclc/39810544)
-
 frdManyOneNemenyiTest(y=all_samples$new_deaths_per_million, groups=all_samples$location, blocks=all_samples$date)
 
+##CONFIRMAR COM A RITA
 
 ##4.2.c
 write("\n4.2.c", file, append=TRUE)
@@ -144,50 +144,52 @@ set.seed(104)
 sample_dates <- sample(date_list, 30)
 sam_samples <- subset(covid_data, date %in% sample_dates & grepl('(OWID_SAM)', covid_data$iso_code), select=c(location,date,new_deaths_per_million))
 
-#testar normalidade dos dados
-ggqqplot(afr_samples$new_deaths_per_million, ylab = "Mortes Diarias/Milhão de habitantes", xlabel= "Teorético")
+#testar distribuição normal dos dados
+qqplot_afr <- ggqqplot(afr_samples$new_deaths_per_million, ylab = "Mortes Diarias/Milhão de habitantes", xlabel= "Teorético")
 shap_afr <- shapiro.test(afr_samples$new_deaths_per_million)
-ggqqplot(asi_samples$new_deaths_per_million, ylab = "Mortes Diarias/Milhão de habitantes", xlabel= "Teorético")
+png(filename="4.2.c_áfrica_qqplot.png")
+plot(qqplot_afr)
+dev.off()
+
+qqplot_asi <- ggqqplot(asi_samples$new_deaths_per_million, ylab = "Mortes Diarias/Milhão de habitantes", xlabel= "Teorético")
 shap_asi <- shapiro.test(asi_samples$new_deaths_per_million)
-ggqqplot(eur_samples$new_deaths_per_million, ylab = "Mortes Diarias/Milhão de habitantes", xlabel= "Teorético")
+png(filename="4.2.c_ásia_qqplot.png")
+plot(qqplot_asi)
+dev.off()
+
+qqplot_eur <- ggqqplot(eur_samples$new_deaths_per_million, ylab = "Mortes Diarias/Milhão de habitantes", xlabel= "Teorético")
 shap_eur <- shapiro.test(eur_samples$new_deaths_per_million)
-ggqqplot(nam_samples$new_deaths_per_million, ylab = "Mortes Diarias/Milhão de habitantes", xlabel= "Teorético")
+png(filename="4.2.c_europa_qqplot.png")
+plot(qqplot_eur)
+dev.off()
+
+qqplot_nam <- ggqqplot(nam_samples$new_deaths_per_million, ylab = "Mortes Diarias/Milhão de habitantes", xlabel= "Teorético")
 shap_nam <- shapiro.test(nam_samples$new_deaths_per_million)
-ggqqplot(sam_samples$new_deaths_per_million, ylab = "Mortes Diarias/Milhão de habitantes", xlabel= "Teorético")
+png(filename="4.2.c_america_norte_qqplot.png")
+plot(qqplot_nam)
+dev.off()
+
+qqplot_sam <- ggqqplot(sam_samples$new_deaths_per_million, ylab = "Mortes Diarias/Milhão de habitantes", xlabel= "Teorético")
 shap_sam <- shapiro.test(sam_samples$new_deaths_per_million)
+png(filename="4.2.c_américa_sul_qqplot.png")
+plot(qqplot_sam)
+dev.off()
 
 all_samples <- rbind(afr_samples, asi_samples, eur_samples, nam_samples, sam_samples)
-#testes de Levene (para verificar a variancia)
-leveneTest(new_deaths_per_million ~ location, data=all_samples)
 
-mean(nam_samples$new_deaths_per_million)
-mean(asi_samples$new_deaths_per_million)
-mean(afr_samples$new_deaths_per_million)
-mean(eur_samples$new_deaths_per_million)
-mean(sam_samples$new_deaths_per_million)
+write(c("Shapiro p-values","África: ", shap_afr$p.value,
+						   "Ásia: ", shap_asi$p.value,
+						   "Europa: ", shap_eur$p.value,
+						   "América do Norte: ", shap_nam$p.value,
+						   "América do Sul: ", shap_sam$p.value,
+		"Apesar dos grupos de dados não serem todos normalmente distribuidos, as amostras são grandes (>=30) e independentes, logo usamos ANOVA"), file, append=TRUE)
 
-write(c("Shapiro p-values","África: ", shap_afr$p.value,"Ásia: ", shap_asi$p.value,"Europa: ", shap_eur$p.value,"América do Norte: ", shap_nam$p.value,"América do Sul: ", shap_sam$p.value,"Apesar dos grupos de dados não serem todos normalmente distribuidos, a amostra é grande (>=30) logo usamos ..."), file, append=TRUE)
-
-#Usamos ...
+#Usamos ANOVA
 all_samples <- rbind(afr_samples,asi_samples,eur_samples,nam_samples,sam_samples)
-kruskal.test(new_deaths_per_million ~ location , data=all_samples)
-oneway.test(new_deaths_per_million ~ location , data=all_samples)
+anova <- oneway.test(new_deaths_per_million ~ location , data=all_samples)
+
+write(c("One way ANOVA p-value:", anova$p.value), file, append = TRUE)
+
+write(c("De acordo com o p-value obtido, rejeitamos a hipótese nula e inferimos que as médias das amostras são significativamente diferentes."), file, append= TRUE)
 
 #análise post hoc
-t.test(afr_samples$new_deaths_per_million, asi_samples$new_deaths_per_million)
-t.test(afr_samples$new_deaths_per_million, eur_samples$new_deaths_per_million)
-t.test(afr_samples$new_deaths_per_million, nam_samples$new_deaths_per_million)
-t.test(afr_samples$new_deaths_per_million, sam_samples$new_deaths_per_million)
-
-t.test(asi_samples$new_deaths_per_million, eur_samples$new_deaths_per_million)
-t.test(asi_samples$new_deaths_per_million, nam_samples$new_deaths_per_million)
-t.test(asi_samples$new_deaths_per_million, sam_samples$new_deaths_per_million)
-
-t.test(eur_samples$new_deaths_per_million, nam_samples$new_deaths_per_million)
-t.test(eur_samples$new_deaths_per_million, sam_samples$new_deaths_per_million)
-
-t.test(nam_samples$new_deaths_per_million, sam_samples$new_deaths_per_million)
-
-# médias semelhantes
-# Europa - América do Sul
-# África - Ásia
