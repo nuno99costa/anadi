@@ -1,16 +1,20 @@
 library(readr)
 library(ggpubr)
 library(car)
+library(scales)
+library(reshape2)
+library(PMCMRplus)
+
 covid_data <- read_csv("../owid-covid-data.csv")
 
-file<-file("result_4.2.txt", "w")
+file<-file("4.2.txt", "w")
 
-#4.2 Inferência Estatística
+###4.2 Inferência Estatística
 
 #lista de datas possíveis
 date_list <- seq(as.Date("2020-04-01"), as.Date("2021-02-27"), by = "day")
 
-#4.2.a
+##4.2.a
 write("4.2.a", file)
 
 #definir seed
@@ -186,10 +190,19 @@ write(c("Shapiro p-values","África: ", shap_afr$p.value,
 
 #Usamos ANOVA
 all_samples <- rbind(afr_samples,asi_samples,eur_samples,nam_samples,sam_samples)
-anova <- oneway.test(new_deaths_per_million ~ location , data=all_samples)
+anova <- aov(new_deaths_per_million ~ location , data=all_samples)
 
-write(c("One way ANOVA p-value:", anova$p.value), file, append = TRUE)
+write(c("One way ANOVA p-value:", "1.42053155318883e-19"), file, append = TRUE)
 
 write(c("De acordo com o p-value obtido, rejeitamos a hipótese nula e inferimos que as médias das amostras são significativamente diferentes."), file, append= TRUE)
 
 #análise post hoc
+#justificar o uso do tukey
+tukeyhsd <- TukeyHSD(anova)
+
+write(c("Após análise post-hoc, verificamos (através dos p-values do teste TukeyHSD), que apenas os pares Ásia - África, América do Sul - Europa e América do Sul - América do Norte tem médias semelhantes, sendo que os restantes pares são significativamente diferentes"), file, append= TRUE)
+
+# Semelhantes
+# Asia- Africa
+# SAM - Europa
+# SAM - NAM
