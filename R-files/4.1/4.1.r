@@ -4,7 +4,7 @@ library(dplyr)
 library(ggplot2)
 library(scales)
 library(reshape2)
-covid_data <- read_csv("owid-covid-data.csv")
+covid_data <- read_csv("../owid-covid-data.csv")
 
 #4.1 Análise de Dados
 
@@ -155,11 +155,10 @@ dev.off()
 #4.1-e
 
 #captura dados relativos aos países do dataset inicial
-capture_data <- covid_data[grepl('(Europe)', covid_data$continent), ]
-europe_data <- capture_data %>% select(location, new_cases_per_million, date)
+europe_data <- subset(covid_data, grepl('(Europe)', covid_data$continent), select=c(location, new_cases_per_million, date))
 
 #remove NAs nas colunas afetas ao problema
-clean_europe_data <- data.frame(europe_data[!is.na(europe_data$new_cases_per_million), ])
+clean_europe_data <- na.omit(europe_data)
 
 #ordena dados por novos casos por dia por milhão de habitantes
 sorted_europe_data <- clean_europe_data[order(-clean_europe_data$new_cases_per_million), ]

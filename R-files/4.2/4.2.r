@@ -105,22 +105,11 @@ write(c("Shapiro p-values","Portugal: ", shap_prt$p.value,
 
 #Dados não são normalmente distribuidos e são emparelhados
 #Usamos o teste de Friedman
-friedman <- friedmanTest(y=all_samples$new_deaths_per_million, groups=all_samples$location, blocks=all_samples$date)
+friedman <- friedman.test(y=all_samples$new_deaths_per_million, groups=all_samples$location, blocks=all_samples$date)
 
 write("Distribuição dos dados não é normal", file, append=TRUE)
-write(c("\nTeste de Friedman p-value", friedman$p.value, "De acordo com o p-value obtido, rejeitamos a hipótese nula e inferimos que existe diferença significativa em no mínimo duas das amostras estudadas (p-value < 0.05)"), file, append=TRUE)
+write(c("\nTeste de Friedman p-value", friedman$p.value, "De acordo com o p-value obtido, aceitamos a hipótese nula que infere a não existência de diferenças significativas entre as amostras exploradas (p-value > 0.05)"), file, append=TRUE)
 
-#Análise Post-hoc
-boxplot <- ggplot(all_samples, aes(x=location, y=new_deaths_per_million)) + 
-    geom_boxplot()
-png(filename="4.2.b_boxplot.png")
-plot(boxplot)
-dev.off()
-
-#usamos o teste de Nemenyi (https://www.worldcat.org/title/distribution-free-multiple-comparisons/oclc/39810544)
-frdManyOneNemenyiTest(y=all_samples$new_deaths_per_million, groups=all_samples$location, blocks=all_samples$date)
-
-##CONFIRMAR COM A RITA
 
 ##4.2.c
 write("\n4.2.c", file, append=TRUE)
@@ -197,12 +186,14 @@ write(c("One way ANOVA p-value:", "1.42053155318883e-19"), file, append = TRUE)
 write(c("De acordo com o p-value obtido, rejeitamos a hipótese nula e inferimos que as médias das amostras são significativamente diferentes."), file, append= TRUE)
 
 #análise post hoc
-#justificar o uso do tukey
-tukeyhsd <- TukeyHSD(anova)
+#testamos a variância
+levene_test <- leveneTest(all_samples$new_deaths_per_million, group=all_samples$location)
 
-write(c("Após análise post-hoc, verificamos (através dos p-values do teste TukeyHSD), que apenas os pares Ásia - África, América do Sul - Europa e América do Sul - América do Norte tem médias semelhantes, sendo que os restantes pares são significativamente diferentes"), file, append= TRUE)
+#p-value < 0.05, rejeitamos hipótese nula e inferimos que as varianças apresentam diferenças significativas entre elas
+#assim, usamos o teste de Games Howell
+all_samples$location <- as.factor(all_samples$location)
 
-# Semelhantes
-# Asia- Africa
-# SAM - Europa
-# SAM - NAM
+ght <- gamesHowellTest(new_deaths_per_million~location, data=all_samples)
+
+ght
+write(c("Após análise post-hoc, verificamos (através dos p-values do teste Games-Howell), que apenas os pares Ásia - África (p-value approx. 0.97), América do Sul - Europa (p-value approx. 0.58) e América do Sul - América do Norte (p-value approx. 0.19) tem médias semelhantes, sendo que os restantes pares são significativamente diferentes"), file, append= TRUE)
