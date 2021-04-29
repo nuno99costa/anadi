@@ -27,16 +27,16 @@ sample_uk <- subset(covid_data, date %in% sample_data & iso_code == "GBR", selec
 ggqqplot(sample_prt$reproduction_rate, ylab = "Taxa de Transmissibilidade", xlabel= "Teorético")
 ggqqplot(sample_uk$reproduction_rate, ylab = "Taxa de Transmissibilidade", xlabel= "Teorético")
 
-#verificamos a normalidade da distribuição dos dados (P-value)
+#verificamos a normalidade da distribuição dos dados (P-value do teste de Shapiro)
 shap_prt <- shapiro.test(sample_prt$reproduction_rate)
 shap_uk <- shapiro.test(sample_uk$reproduction_rate)
 write(c("Shapiro p-values","Portugal",shap_prt$p.value,"Reino Unido", shap_uk$p.value), file, append=TRUE)
 
 #Análise gráfica + Shapiro P-values + tamanho da amostra (>=30) -> usamos T-test
-result <- t.test(sample_uk$reproduction_rate,sample_prt$reproduction_rate, alternative = "greater")
+result <- t.test(sample_uk$reproduction_rate,sample_prt$reproduction_rate, paired = TRUE, alternative = "greater")
 
 #as médias são semelhantes entre os países
-write(c("T-test p-value", result$p.value,"Estimativa de média (Portugal, Reino Unido)",result$estimate,"A média do Reino Unido não é significativamente superior à média de Portugal"), file, append=TRUE)
+write(c("T-test p-value", result$p.value,"De acordo com o p-value (>0.05), aceitamos a hipótese nula e inferimos que média do Reino Unido não é significativamente superior à média de Portugal"), file, append=TRUE)
 
 #4.2.b
 write("\n4.2.b", file, append=TRUE)
@@ -62,7 +62,6 @@ shap_esp <- shapiro.test(subset(all_samples, all_samples$location == "Spain")$ne
 shap_ita <- shapiro.test(subset(all_samples, all_samples$location == "Italy")$new_deaths_per_million)
 shap_fra <- shapiro.test(subset(all_samples, all_samples$location == "France")$new_deaths_per_million)
 
-
 write(c("Shapiro p-values","Portugal: ", shap_prt$p.value,"Espanha: ", shap_esp$p.value,"Itália: ", shap_ita$p.value,"França: ", shap_fra$p.value), file, append=TRUE)
 
 #Dados não são normais
@@ -70,7 +69,9 @@ write(c("Shapiro p-values","Portugal: ", shap_prt$p.value,"Espanha: ", shap_esp$
 
 kruskal <- kruskal.test(new_deaths_per_million~location, data=all_samples)
 kruskal
-#Kruskal p-value= 0.5104
+
+
+
 write("Distribuição dos dados não é normal", file, append=TRUE)
 write(c("\nTeste de Kruskal p-value", kruskal$p.value, "De acordo com o p-value obtido, concluimos que não existe diferença significativa na variável em estudo (p-value > 0.05)"), file, append=TRUE)
 
