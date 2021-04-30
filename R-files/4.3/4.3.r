@@ -58,12 +58,25 @@ highest_td_a65 <- group_by(total_deaths_per_million_per_country, location) %>%
   filter(1:n() == 1)
 
 #verificar 
-plot(highest_td_a65$total_deaths_per_million,highest_td_a65$aged_65_older)
 shapiro.test(highest_td_a65$total_deaths_per_million)
+plot_tdpm <- ggqqplot(highest_td_a65$total_deaths_per_million)
+png(filename="4.3.a_qqplot_total_deaths_per_million.png")
+plot(plot_tdpm)
+dev.off()
+
 shapiro.test(highest_td_a65$aged_65_older)
+plot_age65 <- ggqqplot(highest_td_a65$aged_65_older)
+png(filename="4.3.b_qqplot_population_density.png")
+plot(plot_age65)
+dev.off()
 
 #dados seguem distribuição normal
 #
 
 #teste de correlação
 cor.test(c(highest_td_a65$total_deaths_per_million) ,c(highest_td_a65$aged_65_older), method ="pearson")
+
+ggscatter(highest_td_a65, x = "aged_65_older", y = "total_deaths_per_million", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "spearman",
+          xlab = "Miles/(US) gallon", ylab = "Weight (1000 lbs)")
