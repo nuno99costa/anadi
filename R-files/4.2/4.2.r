@@ -170,30 +170,33 @@ dev.off()
 
 all_samples <- rbind(afr_samples, asi_samples, eur_samples, nam_samples, sam_samples)
 
+
+#testamos a variância
+levene_test <- leveneTest(all_samples$new_deaths_per_million, group=all_samples$location)
+
+levene_test
+
 write(c("Shapiro p-values","África: ", shap_afr$p.value,
 						   "Ásia: ", shap_asi$p.value,
 						   "Europa: ", shap_eur$p.value,
 						   "América do Norte: ", shap_nam$p.value,
 						   "América do Sul: ", shap_sam$p.value,
-		"Apesar dos grupos de dados não serem todos normalmente distribuidos, as amostras são grandes (>=30) e independentes, logo usamos ANOVA"), file, append=TRUE)
+		"Apesar dos grupos de dados não serem todos normalmente distribuidos, as amostras são grandes (>=30) e independentes. No entanto, as variâncias são significativamente diferentes logo usamos Kruskal-Wallis"), file, append=TRUE)
 
-#Usamos ANOVA
-all_samples <- rbind(afr_samples,asi_samples,eur_samples,nam_samples,sam_samples)
-anova <- aov(new_deaths_per_million ~ location , data=all_samples)
+#Usamos Kruskal-Wallis
+kruskal <- kruskal.test(new_deaths_per_million ~ location , data=all_samples)
 
-write(c("One way ANOVA p-value:", "1.42053155318883e-19"), file, append = TRUE)
+kruskal
+write(c("Kruskal-Wallis Hipótese Nula p-value:", "< 2.2e-16"), file, append = TRUE)
 
 write(c("De acordo com o p-value obtido, rejeitamos a hipótese nula e inferimos que as médias das amostras são significativamente diferentes."), file, append= TRUE)
 
 #análise post hoc
-#testamos a variância
-levene_test <- leveneTest(all_samples$new_deaths_per_million, group=all_samples$location)
 
 #p-value < 0.05, rejeitamos hipótese nula e inferimos que as varianças apresentam diferenças significativas entre elas
-#assim, usamos o teste de Games Howell
+#assim, usamos o teste de Games Howell, porque as variâncias são diferentes
 all_samples$location <- as.factor(all_samples$location)
 
 ght <- gamesHowellTest(new_deaths_per_million~location, data=all_samples)
 
-ght
 write(c("Após análise post-hoc, verificamos (através dos p-values do teste Games-Howell), que apenas os pares Ásia - África (p-value approx. 0.97), América do Sul - Europa (p-value approx. 0.58) e América do Sul - América do Norte (p-value approx. 0.19) tem médias semelhantes, sendo que os restantes pares são significativamente diferentes"), file, append= TRUE)
