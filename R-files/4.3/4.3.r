@@ -19,7 +19,11 @@ date_list <- seq(as.Date("2021-01-01"), as.Date("2021-12-31"), by = "day")
 ##4.3.a
 
 #obter dados relativos ao problema (e remover NAs)
-europe <- subset(covid_data, covid_data$continent == 'Europe' & covid_data$population>10000000 & date %in% date_list, select=c(location, reproduction_rate, population_density))
+europe <- subset(covid_data, 
+                 covid_data$continent == 'Europe' & 
+                 covid_data$population>10000000 & 
+                 date %in% date_list, 
+                 select=c(location, reproduction_rate, population_density))
 clean_europe <- na.omit(europe)
 
 #filtrar dados de modo a obter a máxima taxa de transmissibilidade por país
