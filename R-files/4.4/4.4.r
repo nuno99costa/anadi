@@ -86,4 +86,4 @@ prediction <- predict(reg, portugal)
 
 print(prediction)
 
-#para os dados inseridos na predição, é esperado um valor para o ir de 74.43
+#para os dados inseridos no cálculo da previsão, é esperado um valor para o IR de 74.43
